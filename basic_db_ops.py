@@ -65,8 +65,7 @@ def drop_table(table_name, db_config_file_name, config_section):
         if conn is not None:
             conn.close()
 
-def add_table_to_db(db_name, elements_json, db_config_file_name, config_section, \
-    exclude_list):
+def add_table_to_db(db_name, elements_json, db_config_file_name, config_section):
     """
     This function will add a table to the DB
     """
@@ -79,7 +78,7 @@ def add_table_to_db(db_name, elements_json, db_config_file_name, config_section,
     sql_query = 'CREATE TABLE ' + db_name + ' (' + os.linesep + \
         'file_path VARCHAR(255) PRIMARY KEY,' + os.linesep
     for element_name in elements:
-        if element_name not in exclude_list:
+        if not elements[element_name]['calculation_only']:
             sql_query = sql_query + element_name + ' ' + elements[element_name]['db_datatype'] \
                 + ',' + os.linesep
     sql_query = sql_query[:-2] + ');'

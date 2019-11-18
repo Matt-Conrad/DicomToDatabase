@@ -13,8 +13,6 @@ import pydicom as pdm
 from config import config
 import basic_db_ops as db
 
-ONLY_FOR_CALC = ['patient_birth_date', 'study_date']
-
 def dicom_to_db(elements_json, db_config_file_name, config_section, dcm_section):
     """
     This function will take a foldername and DB details and move the metadata in that folder
@@ -86,7 +84,7 @@ def create_sql_query(elements_json, dcm, file_path):
     placeholders = ['%s']
     # Append any value to this list that isn't birth_date or study_date
     for element_name in elements.keys():
-        if element_name not in ONLY_FOR_CALC:
+        if not elements[element_name]['calculation_only']:
             names.append(element_name)
             values.append(elements[element_name]['value'])
             placeholders.append('%s')
@@ -116,8 +114,7 @@ def calculate_age(elements):
 
 if __name__ == '__main__':
     db.drop_table('image_metadata', 'config.ini', 'postgresql')
-    db.add_table_to_db('image_metadata', 'elements.json', 'config.ini', 'postgresql', \
-        ONLY_FOR_CALC)
+    db.add_table_to_db('image_metadata', 'elements.json', 'config.ini', 'postgresql')
     dicom_to_db('elements.json', 'config.ini', 'postgresql', 'dicom_folder')
 
     # db.check_db_connection('config.ini', 'postgresql')

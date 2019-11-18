@@ -1,0 +1,4 @@
+# Don't track these items
+config.ini
+.vscode
+__pycache__

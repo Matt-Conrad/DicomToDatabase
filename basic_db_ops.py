@@ -1,20 +1,21 @@
-"""
-This module contains functions that are basic and common DB operations
-"""
+"""Module contains functions that are basic and common DB operations."""
 import os
 import json
 import psycopg2
 from config import config
 
-def check_db_connection(db_config_file_name, config_section):
-    """
-    Checks that a connection to the PostgreSQL database server is possible by retrieving
-    the version from the DB
+def check_db_connection(db_config_file_name):
+    """Check the connection to a PostgreSQL DB server.
+
+    Parameters
+    ----------
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
     """
     conn = None
     try:
         # read connection parameters
-        params = config(filename=db_config_file_name, section=config_section)
+        params = config(filename=db_config_file_name, section='postgresql')
 
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
@@ -44,12 +45,20 @@ def check_db_connection(db_config_file_name, config_section):
             conn.close()
             print('Database connection closed.')
 
-def drop_table(table_name, db_config_file_name, config_section):
-    """ This function drops a table you specify """
+def drop_table(table_name, db_config_file_name):
+    """Drop a table in the desired DB.
+
+    Parameters
+    ----------
+    table_name : string
+        The name of the table in the DB specified in db_config_file_name
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
+    """
     conn = None
     try:
         # read the connection parameters
-        params = config(filename=db_config_file_name, section=config_section)
+        params = config(filename=db_config_file_name, section='postgresql')
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
@@ -65,9 +74,18 @@ def drop_table(table_name, db_config_file_name, config_section):
         if conn is not None:
             conn.close()
 
-def add_table_to_db(db_name, elements_json, db_config_file_name, config_section):
-    """
-    This function will add a table to the DB
+def add_table_to_db(table_name, elements_json, db_config_file_name):
+    """Add a table to the desired DB.
+
+    Parameters
+    ----------
+    table_name : string
+        Name of the table to be added to the DB
+    elements_json : string
+        Name of the JSON containing the list of elements. Each element name that is not
+        calculation_only will be a column in the new table
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
     """
     # Open the json with the list of elements we're interested in
     with open(elements_json) as file_reader:
@@ -75,7 +93,7 @@ def add_table_to_db(db_name, elements_json, db_config_file_name, config_section)
     elements = elements_json['elements']
 
     # Make the SQL query
-    sql_query = 'CREATE TABLE ' + db_name + ' (' + os.linesep + \
+    sql_query = 'CREATE TABLE ' + table_name + ' (' + os.linesep + \
         'file_path VARCHAR(255) PRIMARY KEY,' + os.linesep
     for element_name in elements:
         if not elements[element_name]['calculation_only']:
@@ -86,7 +104,7 @@ def add_table_to_db(db_name, elements_json, db_config_file_name, config_section)
     conn = None
     try:
         # read the connection parameters
-        params = config(filename=db_config_file_name, section=config_section)
+        params = config(filename=db_config_file_name, section='postgresql')
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()

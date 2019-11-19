@@ -1,10 +1,26 @@
-"""
-This module contains a function that will read parameters from a config file (INI format)
-"""
+"""Contains a function that will read parameters from a config file (INI format)."""
 from configparser import ConfigParser
 
 def config(filename, section):
-    """ This function reads the parameters from the specified section of the desired file """
+    """Read the parameters from the specified section of the desired config file.
+
+    Parameters
+    ----------
+    filename : string
+        Name of the config file
+    section : string
+        Name of the section in the config file
+
+    Returns
+    -------
+    dict
+        Dictionary containing the params and values from the config file
+
+    Raises
+    ------
+    Exception
+        Raised when section is not found in the config file
+    """
     # create a parser
     parser = ConfigParser()
     # read config file

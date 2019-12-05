@@ -15,7 +15,7 @@ def dicom_to_db(elements_json, config_file_name):
 
     This function goes through all of the DCM files in the directory specified in the 'postgresql'
     section of the config file specified by config_file_name. For each DCM, the function reads the
-    values of the tags specified in the JSON named in elements_json and stores them all in a 
+    values of the tags specified in the JSON named in elements_json and stores them all in a
     PostgreSQL DB table where the columns are the tags and each row is a DCM.
 
     Parameters
@@ -149,6 +149,6 @@ def data_adjustments(elements):
             '\\'.join(elements['patient_orientation']['value'])
 
 if __name__ == '__main__':
-    # db.drop_table('image_metadata', 'config.ini')
-    # db.add_table_to_db('image_metadata', 'elements.json', 'config.ini')
+    db.drop_table('image_metadata', 'config.ini')
+    db.add_table_to_db('image_metadata', 'elements.json', 'config.ini')
     dicom_to_db('elements.json', 'config.ini')

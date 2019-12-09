@@ -64,6 +64,7 @@ def dicom_to_db(elements_json, config_file_name):
 
         print('Done reading ' + file_path)
 
+# TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):
     """Create the SQL query for inserting a record.
 

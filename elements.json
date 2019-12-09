@@ -74,6 +74,11 @@
             "tag": "0x0008, 0x0020",
             "db_datatype": "VARCHAR(255)",
             "calculation_only": true
-        }        
+        },
+        "photometric_interpretation": {
+            "tag": "0x0028, 0x0004",
+            "db_datatype": "VARCHAR(255)",
+            "calculation_only": false
+        }
     }
 }

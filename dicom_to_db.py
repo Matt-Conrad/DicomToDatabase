@@ -92,7 +92,14 @@ def create_sql_query(table_name, elements, file_path):
         tag = elements[element_name]['tag']
         [group_num, element_num] = tag.split(',')
         try:
-            value = dcm[int(group_num, 16), int(element_num, 16)].value
+            element = dcm[int(group_num, 16), int(element_num, 16)]
+            if 'window' in element_name:
+                if element.VR == 'DS' and element.VM == 1:
+                    value = int(float(element.value))
+                elif element.VR == 'DS' and element.VM > 1:
+                    value = int(float(element.value[0]))
+            else:
+                value = element.value
             elements[element_name]['value'] = value
         except (KeyError) as tag: # if the value isn't there, then set it as None
             print('Cannot read the following DICOM tag: ' + str(tag))

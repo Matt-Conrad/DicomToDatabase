@@ -93,10 +93,10 @@ def create_sql_query(table_name, elements, file_path):
         [group_num, element_num] = tag.split(',')
         try:
             element = dcm[int(group_num, 16), int(element_num, 16)]
-            if 'window' in element_name:
-                if element.VR == 'DS' and element.VM == 1:
+            if element.VR == 'DS':
+                if element.VM == 1:
                     value = int(float(element.value))
-                elif element.VR == 'DS' and element.VM > 1:
+                elif element.VM > 1:
                     value = int(float(element.value[0]))
             else:
                 value = element.value

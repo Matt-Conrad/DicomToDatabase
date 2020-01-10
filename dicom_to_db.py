@@ -8,9 +8,8 @@ from dateutil.relativedelta import relativedelta
 import psycopg2
 import pydicom as pdm
 from config import config
-import basic_db_ops as db
 
-def dicom_to_db(elements_json, config_file_name):
+def dicom_to_db(elements_json, config_file_name, section_name):
     """Move all desired DCM tag-values from a directory full of DCMs into a PostgreSQL DB.
 
     This function goes through all of the DCM files in the directory specified in the 'postgresql'
@@ -24,11 +23,13 @@ def dicom_to_db(elements_json, config_file_name):
         The name of the JSON that contains the list of elements we want to read from the DICOM
     config_file_name : string
         The name of the file that contains DB and DICOM folder info
+    section_name : string
+        Name of the section in the elements_json that has the column info for that table
     """
     # Open the json with the list of elements we're interested in
     with open(elements_json) as file_reader:
         elements_dict = json.load(file_reader)
-    elements_original = elements_dict['elements']
+    elements_original = elements_dict[section_name]
 
     folder_path = config(filename=config_file_name, section='dicom_folder')['folder_path']
     pathlist = Path(folder_path).glob('**/*.dcm')
@@ -44,7 +45,7 @@ def dicom_to_db(elements_json, config_file_name):
         try:
             # read the connection parameters
             params = config(filename=config_file_name, section='postgresql')
-            table_name = config(filename=config_file_name, section='table_info')['table_name']
+            table_name = config(filename=config_file_name, section='table_info')['metadata_table_name']
             # connect to the PostgreSQL server
             conn = psycopg2.connect(**params)
             cur = conn.cursor()
@@ -156,7 +157,3 @@ def data_adjustments(elements):
         elements['patient_orientation']['value'] = \
             '\\'.join(elements['patient_orientation']['value'])
 
-if __name__ == '__main__':
-    db.drop_table('image_metadata', 'config.ini')
-    db.add_table_to_db('image_metadata', 'elements.json', 'config.ini')
-    dicom_to_db('elements.json', 'config.ini')

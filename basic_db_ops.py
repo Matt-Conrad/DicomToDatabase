@@ -2,6 +2,7 @@
 import os
 import json
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from config import config
 
 def check_db_connection(db_config_file_name):
@@ -74,7 +75,7 @@ def drop_table(table_name, db_config_file_name):
         if conn is not None:
             conn.close()
 
-def add_table_to_db(table_name, elements_json, db_config_file_name):
+def add_table_to_db(table_name, elements_json, db_config_file_name, section_name):
     """Add a table to the desired DB.
 
     Parameters
@@ -86,11 +87,13 @@ def add_table_to_db(table_name, elements_json, db_config_file_name):
         calculation_only will be a column in the new table
     db_config_file_name : string
         The file name of the INI file that contains the information on the DB server
+    section_name : string
+        Name of the section in the elements_json that has the column info for that table
     """
     # Open the json with the list of elements we're interested in
     with open(elements_json) as file_reader:
         elements_json = json.load(file_reader)
-    elements = elements_json['elements']
+    elements = elements_json[section_name]
 
     # Make the SQL query
     sql_query = 'CREATE TABLE ' + table_name + ' (' + os.linesep + \
@@ -113,6 +116,27 @@ def add_table_to_db(table_name, elements_json, db_config_file_name):
         # close communication with the PostgreSQL database server
         cur.close()
         # commit the changes
+        conn.commit()
+    except (psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+def create_new_db(db_name):
+    """Create a new DB.
+
+    Parameters
+    ----------
+    db_name : string
+        Name of the new DB
+    """
+    try:
+        conn = psycopg2.connect(dbname='postgres', user='postgres', host='localhost', password='postgres')
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cur = conn.cursor()
+        cur.execute('CREATE DATABASE ' + db_name + ';')
+        cur.close()
         conn.commit()
     except (psycopg2.DatabaseError) as error:
         print(error)

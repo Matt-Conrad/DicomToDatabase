@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 import psycopg2
 import pydicom as pdm
 from config import config
+import logging
 
 def dicom_to_db(elements_json, config_file_name, section_name):
     """Move all desired DCM tag-values from a directory full of DCMs into a PostgreSQL DB.
@@ -38,7 +39,7 @@ def dicom_to_db(elements_json, config_file_name, section_name):
         # read each image in the subdirectories
         file_path = str(path)
 
-        print('Starting to read ' + file_path)
+        logging.info('Starting to read ' + file_path)
 
         # Insert the DICOM metadata as a new record in the Postgres DB
         conn = None
@@ -58,12 +59,12 @@ def dicom_to_db(elements_json, config_file_name, section_name):
             # commit the changes
             conn.commit()
         except (psycopg2.DatabaseError) as error:
-            print(error)
+            logging.warning(error)
         finally:
             if conn is not None:
                 conn.close()
 
-        print('Done reading ' + file_path)
+        logging.info('Done reading ' + file_path)
 
 # TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):
@@ -103,7 +104,7 @@ def create_sql_query(table_name, elements, file_path):
                 value = element.value
             elements[element_name]['value'] = value
         except (KeyError) as tag: # if the value isn't there, then set it as None
-            print('Cannot read the following DICOM tag: ' + str(tag))
+            logging.warning('Cannot read the following DICOM tag: ' + str(tag))
             elements[element_name]['value'] = None
             continue
 
@@ -143,7 +144,7 @@ def data_adjustments(elements):
         if (elements['patient_birth_date']['value'] is not None) \
             and (elements['study_date']['value'] is not None):
 
-            print('Calculating the patient age (0x0010, 0x1010)')
+            logging.info('Calculating the patient age (0x0010, 0x1010)')
             patient_birth_date = elements['patient_birth_date']['value']
             study_date = elements['study_date']['value']
 

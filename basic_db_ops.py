@@ -4,6 +4,7 @@ import json
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from config import config
+import logging
 
 def check_db_connection(db_config_file_name):
     """Check the connection to a PostgreSQL DB server.
@@ -19,32 +20,32 @@ def check_db_connection(db_config_file_name):
         params = config(filename=db_config_file_name, section='postgresql')
 
         # connect to the PostgreSQL server
-        print('Connecting to the PostgreSQL database...')
+        logging.info('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
         # create a cursor
         cur = conn.cursor()
 
         # execute a statement
-        print('PostgreSQL database version:')
+        logging.info('PostgreSQL database version:')
         cur.execute('SELECT version()')
 
         # display the PostgreSQL database server version
         db_version = cur.fetchone()
-        print(db_version)
+        logging.info(db_version)
 
        # close the cursor with the PostgreSQL
         cur.close()
 
     # If an exception is raised along the way, report it
     except (psycopg2.DatabaseError) as error:
-        print(error)
+        logging.warning(error)
 
     # At the end, if the connection still exists then close it
     finally:
         if conn is not None:
             conn.close()
-            print('Database connection closed.')
+            logging.info('Database connection closed.')
 
 def drop_table(table_name, db_config_file_name):
     """Drop a table in the desired DB.
@@ -70,7 +71,7 @@ def drop_table(table_name, db_config_file_name):
         # commit the changes
         conn.commit()
     except (psycopg2.DatabaseError) as error:
-        print(error)
+        logging.warning(error)
     finally:
         if conn is not None:
             conn.close()
@@ -118,7 +119,7 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
         # commit the changes
         conn.commit()
     except (psycopg2.DatabaseError) as error:
-        print(error)
+        logging.warning(error)
     finally:
         if conn is not None:
             conn.close()
@@ -139,7 +140,7 @@ def create_new_db(db_name):
         cur.close()
         conn.commit()
     except (psycopg2.DatabaseError) as error:
-        print(error)
+        logging.warning(error)
     finally:
         if conn is not None:
             conn.close()

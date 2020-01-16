@@ -1,4 +1,5 @@
 """Contains a function that will read parameters from a config file (INI format)."""
+import logging
 from configparser import ConfigParser
 
 def config(filename, section):
@@ -21,6 +22,7 @@ def config(filename, section):
     Exception
         Raised when section is not found in the config file
     """
+    logging.info('Attempting to read section %s in config file %s', section, filename)
     # create a parser
     parser = ConfigParser()
     # read config file
@@ -34,6 +36,9 @@ def config(filename, section):
             db[param[0]] = param[1]
     else:
         raise Exception('Section {0} not found in the {1} file'.format(section, filename))
+
+    logging.info('Section successfully read')
+    logging.info(db)
 
     return db
 
@@ -56,6 +61,8 @@ def update_config_file(filename, section, key, value):
     Exception
         Raised when section is not found in the config file
     """
+    logging.info('Attempting to update the key %s in section %s of config file %s', key, section,
+                 filename)
     # create a parser
     parser = ConfigParser()
     # read config file
@@ -69,6 +76,7 @@ def update_config_file(filename, section, key, value):
 
     with open(filename, 'w') as configfile:
         parser.write(configfile)
+    logging.info('Key successfully updated')
 
 def get_config_setting(filename, section, key):
     """Get the database name in the specified config file.
@@ -81,6 +89,11 @@ def get_config_setting(filename, section, key):
         Name of the section in the config file
     key : string
         Name of the key in the section in the config file
+
+    Returns
+    -------
+    value
+        The value of the key in the desired section
 
     Raises
     ------
@@ -97,3 +110,6 @@ def get_config_setting(filename, section, key):
         return parser[section][key]
     else:
         raise Exception('Section {0} not found in the {1} file'.format(section, filename))
+
+if __name__ == "__main__":
+    logging.basicConfig(filename='config.log', level=logging.INFO)

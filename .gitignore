@@ -2,3 +2,4 @@
 config.ini
 .vscode
 __pycache__
+basic_db_ops.log

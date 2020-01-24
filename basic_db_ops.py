@@ -6,7 +6,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from config import config
 
-def check_db_connection(db_config_file_name):
+def check_server_connection(db_config_file_name):
     """Check the connection to a PostgreSQL DB server.
 
     Parameters
@@ -14,7 +14,7 @@ def check_db_connection(db_config_file_name):
     db_config_file_name : string
         The file name of the INI file that contains the information on the DB server
     """
-    logging.info('Running test for DB connection')
+    logging.info('Running test for server connection')
     conn = None
     try:
         # read connection parameters
@@ -22,6 +22,7 @@ def check_db_connection(db_config_file_name):
         logging.info('Reading configuration information from %s of %s', relevant_section,
                      db_config_file_name)
         params = config(filename=db_config_file_name, section=relevant_section)
+        params['database'] = 'postgres'
         logging.info(params)
 
         # connect to the PostgreSQL server
@@ -49,6 +50,112 @@ def check_db_connection(db_config_file_name):
             logging.info('Attempting to close connection')
             conn.close()
             logging.info('Database connection closed.')
+
+def db_exists(db_config_file_name, db_name):
+    """Check the existence of a DB in a PostgreSQL DB server.
+
+    Parameters
+    ----------
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
+    db_name : string
+        The name of the database we wish to check the existence of
+    """
+    logging.info('Checking for existence of DB')
+    conn = None
+    result = None
+    try:
+        # read connection parameters
+        relevant_section = 'postgresql'
+        logging.info('Reading configuration information from %s of %s', relevant_section,
+                     db_config_file_name)
+        params = config(filename=db_config_file_name, section=relevant_section)
+        params['database'] = 'postgres'
+        logging.info(params)
+
+        # connect to the PostgreSQL server
+        logging.info('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        logging.info('Connection established')
+
+        # execute a statement
+        logging.info('Checking for database version')
+        sql_query = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + db_name + '\''
+        cur.execute(sql_query)
+        if cur.fetchone() is None:
+            result = False
+        else:
+            result = True
+
+       # close the cursor with the PostgreSQL
+        cur.close()
+
+    # If an exception is raised along the way, report it
+    except (psycopg2.DatabaseError) as error:
+        logging.warning(error)
+
+    # At the end, if the connection still exists then close it
+    finally:
+        if conn is not None:
+            logging.info('Attempting to close connection')
+            conn.close()
+            logging.info('Database connection closed.')
+    return result
+
+def table_exists(db_config_file_name, db_name, table_name):
+    """Check the existence of a table in a DB in a PostgreSQL DB server.
+
+    Parameters
+    ----------
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
+    db_name : string
+        The name of the database we wish to check
+    table_name : string
+        The name of the table we wish to check the existence of
+    """
+    logging.info('Checking for existence of table in DB')
+    conn = None
+    result = None
+    try:
+        # read connection parameters
+        relevant_section = 'postgresql'
+        logging.info('Reading configuration information from %s of %s', relevant_section,
+                     db_config_file_name)
+        params = config(filename=db_config_file_name, section=relevant_section)
+        params['database'] = db_name
+        logging.info(params)
+
+        # connect to the PostgreSQL server
+        logging.info('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        logging.info('Connection established')
+
+        # execute a statement
+        logging.info('Checking for database version')
+        sql_query = "SELECT * FROM information_schema.tables WHERE table_name=%s"
+        cur.execute(sql_query, (table_name,))
+        if cur.fetchone() is None:
+            result = False
+        else:
+            result = True
+
+       # close the cursor with the PostgreSQL
+        cur.close()
+
+    # If an exception is raised along the way, report it
+    except (psycopg2.DatabaseError) as error:
+        logging.warning(error)
+
+    # At the end, if the connection still exists then close it
+    finally:
+        if conn is not None:
+            logging.info('Attempting to close connection')
+            conn.close()
+            logging.info('Database connection closed.')
+    return result
 
 def drop_table(table_name, db_config_file_name):
     """Drop a table in the desired DB.
@@ -190,4 +297,5 @@ def create_new_db(db_name):
             logging.info('Database connection closed.')
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='basic_db_ops.log', level=logging.INFO)
+    logging.basicConfig(filename='basic_db_ops.log', level=logging.DEBUG)
+    print(db_exists('config.ini', 'nifti_test'))

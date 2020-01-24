@@ -82,7 +82,7 @@ def dicom_to_db(elements_json, config_file_name, section_name):
         finally:
             if conn is not None:
                 conn.close()
-            logging.info('Done storing metadata')
+    logging.info('Done storing metadata')
 
 # TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):
@@ -122,7 +122,7 @@ def create_sql_query(table_name, elements, file_path):
                 value = element.value
             elements[element_name]['value'] = value
         except (KeyError) as tag: # if the value isn't there, then set it as None
-            logging.warning('Cannot read the following DICOM tag: ' + str(tag))
+            logging.debug('Cannot read the following DICOM tag: ' + str(tag))
             elements[element_name]['value'] = None
             continue
 

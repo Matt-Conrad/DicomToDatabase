@@ -8,6 +8,10 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import psycopg2
 import pydicom as pdm
+# These next 2 lines are so modules using this package as a submodule can use this.
+import sys
+sys.path.append("./DicomToDatabase")
+# 
 from config import config
 import basic_db_ops as bdo
 

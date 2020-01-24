@@ -18,18 +18,14 @@ def check_server_connection(db_config_file_name):
     conn = None
     try:
         # read connection parameters
-        relevant_section = 'postgresql'
-        logging.info('Reading configuration information from %s of %s', relevant_section,
-                     db_config_file_name)
-        params = config(filename=db_config_file_name, section=relevant_section)
+        params = config(filename=db_config_file_name, section='postgresql')
         params['database'] = 'postgres'
-        logging.info(params)
 
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # execute a statement
         logging.info('Checking for database version')
@@ -47,9 +43,9 @@ def check_server_connection(db_config_file_name):
     # At the end, if the connection still exists then close it
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
 
 def db_exists(db_config_file_name, db_name):
     """Check the existence of a DB in a PostgreSQL DB server.
@@ -60,33 +56,35 @@ def db_exists(db_config_file_name, db_name):
         The file name of the INI file that contains the information on the DB server
     db_name : string
         The name of the database we wish to check the existence of
+
+    Returns
+    -------
+    bool
+        Return True if the DB exists or False if the DB doesn't exist
     """
-    logging.info('Checking for existence of DB')
+    logging.info('Checking for existence of DB: %s', db_name)
     conn = None
     result = None
     try:
         # read connection parameters
-        relevant_section = 'postgresql'
-        logging.info('Reading configuration information from %s of %s', relevant_section,
-                     db_config_file_name)
-        params = config(filename=db_config_file_name, section=relevant_section)
+        params = config(filename=db_config_file_name, section='postgresql')
         params['database'] = 'postgres'
-        logging.info(params)
 
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # execute a statement
-        logging.info('Checking for database version')
         sql_query = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + db_name + '\''
         cur.execute(sql_query)
         if cur.fetchone() is None:
             result = False
         else:
             result = True
+
+        logging.info('Database %s exists: %s', db_name, result)
 
        # close the cursor with the PostgreSQL
         cur.close()
@@ -98,9 +96,9 @@ def db_exists(db_config_file_name, db_name):
     # At the end, if the connection still exists then close it
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
     return result
 
 def table_exists(db_config_file_name, db_name, table_name):
@@ -114,33 +112,35 @@ def table_exists(db_config_file_name, db_name, table_name):
         The name of the database we wish to check
     table_name : string
         The name of the table we wish to check the existence of
+
+    Returns
+    -------
+    bool
+        Return True if the table exists or False if the table doesn't exist
     """
-    logging.info('Checking for existence of table in DB')
+    logging.info('Checking for existence of table %s in DB %s ', table_name, db_name)
     conn = None
     result = None
     try:
         # read connection parameters
-        relevant_section = 'postgresql'
-        logging.info('Reading configuration information from %s of %s', relevant_section,
-                     db_config_file_name)
-        params = config(filename=db_config_file_name, section=relevant_section)
+        params = config(filename=db_config_file_name, section='postgresql')
         params['database'] = db_name
-        logging.info(params)
 
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # execute a statement
-        logging.info('Checking for database version')
         sql_query = "SELECT * FROM information_schema.tables WHERE table_name=%s"
         cur.execute(sql_query, (table_name,))
         if cur.fetchone() is None:
             result = False
         else:
             result = True
+
+        logging.info('Table %s exists: %s', table_name, result)
 
        # close the cursor with the PostgreSQL
         cur.close()
@@ -152,9 +152,9 @@ def table_exists(db_config_file_name, db_name, table_name):
     # At the end, if the connection still exists then close it
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
     return result
 
 def drop_table(table_name, db_config_file_name):
@@ -171,17 +171,13 @@ def drop_table(table_name, db_config_file_name):
     conn = None
     try:
         # read the connection parameters
-        relevant_section = 'postgresql'
-        logging.info('Reading configuration information from %s of %s', relevant_section,
-                     db_config_file_name)
         params = config(filename=db_config_file_name, section='postgresql')
-        logging.info(params)
 
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # drop table
         cur.execute('DROP TABLE ' + table_name + ';')
@@ -197,9 +193,9 @@ def drop_table(table_name, db_config_file_name):
         logging.warning(error)
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
 
 def add_table_to_db(table_name, elements_json, db_config_file_name, section_name):
     """Add a table to the desired DB.
@@ -219,8 +215,6 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
     logging.info('Attempting to add table to DB')
 
     # Open the json with the list of elements we're interested in
-    logging.info('Reading the desired column info in from section %s in the %s',
-                 section_name, elements_json)
     with open(elements_json) as file_reader:
         elements_json = json.load(file_reader)
     elements = elements_json[section_name]
@@ -237,17 +231,13 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
     conn = None
     try:
         # read the connection parameters
-        relevant_section = 'postgresql'
-        logging.info('Reading configuration information from %s of %s', relevant_section,
-                     db_config_file_name)
         params = config(filename=db_config_file_name, section='postgresql')
-        logging.info(params)
 
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # create table one by one
         cur.execute(sql_query)
@@ -260,9 +250,9 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
         logging.warning(error)
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
 
 # TODO: Rewrite this function to be more flexible
 def create_new_db(db_name):
@@ -276,12 +266,12 @@ def create_new_db(db_name):
     logging.info('Attempting to create a new DB')
     try:
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
+        logging.debug('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(dbname='postgres', user='postgres', host='localhost',
                                 password='postgres')
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
-        logging.info('Connection established')
+        logging.debug('Connection established')
 
         # Create database
         cur.execute('CREATE DATABASE ' + db_name + ';')
@@ -292,10 +282,10 @@ def create_new_db(db_name):
         logging.warning(error)
     finally:
         if conn is not None:
-            logging.info('Attempting to close connection')
+            logging.debug('Attempting to close connection')
             conn.close()
-            logging.info('Database connection closed.')
+            logging.debug('Database connection closed.')
 
 if __name__ == "__main__":
     logging.basicConfig(filename='basic_db_ops.log', level=logging.DEBUG)
-    print(db_exists('config.ini', 'nifti_test'))
+    table_exists('config.ini', 'test', 'no')

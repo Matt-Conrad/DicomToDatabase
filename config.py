@@ -22,7 +22,6 @@ def config(filename, section):
     Exception
         Raised when section is not found in the config file
     """
-    logging.info('Attempting to read section %s in config file %s', section, filename)
     # create a parser
     parser = ConfigParser()
     # read config file
@@ -37,8 +36,8 @@ def config(filename, section):
     else:
         raise Exception('Section {0} not found in the {1} file'.format(section, filename))
 
-    logging.info('Section successfully read')
-    logging.info(db)
+    logging.debug('Successfully read section: %s in config file: %s,  here is the result:', section, filename)
+    logging.debug(db)
 
     return db
 
@@ -61,8 +60,6 @@ def update_config_file(filename, section, key, value):
     Exception
         Raised when section is not found in the config file
     """
-    logging.info('Attempting to update the key %s in section %s of config file %s', key, section,
-                 filename)
     # create a parser
     parser = ConfigParser()
     # read config file
@@ -76,7 +73,7 @@ def update_config_file(filename, section, key, value):
 
     with open(filename, 'w') as configfile:
         parser.write(configfile)
-    logging.info('Key successfully updated')
+    logging.debug('Updated key %s in section %s of config file %s', key, section, filename)
 
 def get_config_setting(filename, section, key):
     """Get the database name in the specified config file.

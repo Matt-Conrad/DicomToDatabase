@@ -12,6 +12,24 @@ from config import config
 import basic_db_ops as bdo
 
 def nifti_to_db(elements_json, config_file_name, section_name):
+    """Move all desired NIFTI metadata from a directory full of NIFTIs into a PostgreSQL DB.
+
+    This function goes through all of the NIFTI files in the directory specified in the 'postgresql'
+    section of the config file specified by config_file_name. For each NIFTI, the function reads the
+    values of the tags specified in the JSON named in elements_json and stores them all in a
+    PostgreSQL DB table where the columns are the tags and each row is a NIFTI.
+
+    Parameters
+    ----------
+    elements_json : string
+        The name of the JSON that contains the list of elements we want to read from the DICOM
+    config_file_name : string
+        The name of the file that contains DB and DICOM folder info
+    section_name : string
+        Name of the section in the elements_json that has the column info for that table
+    """
+    logging.info('Attempting to store NIFTI metadata from DCMs in a folder to Postgres DB')
+    
     # Create the database if it isn't already there
     db_name = config(filename=config_file_name, section='postgresql')['database']
     if not bdo.db_exists(config_file_name, db_name):
@@ -35,7 +53,7 @@ def nifti_to_db(elements_json, config_file_name, section_name):
         # read each image in the subdirectories
         file_path = str(path)
 
-        logging.debug('Starting to read ' + file_path)
+        logging.info('Reading: ' + file_path)
 
         # Insert the DICOM metadata as a new record in the Postgres DB
         conn = None
@@ -48,25 +66,25 @@ def nifti_to_db(elements_json, config_file_name, section_name):
             cur = conn.cursor()
             # Create the SQL query to be used
             sql_query, values = create_sql_query(table_name, elements, file_path)
+            logging.debug('SQL Query: %s', sql_query)
             # create table one by one
             cur.execute(sql_query, values)
             # close communication with the PostgreSQL database server
             cur.close()
             # commit the changes
             conn.commit()
+            logging.info('Metadata stored')
         except (psycopg2.DatabaseError) as error:
             logging.warning(error)
         finally:
             if conn is not None:
                 conn.close()
 
-        logging.debug('Done reading ' + file_path)
-
 # TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):
     """Create the SQL query for inserting a record.
 
-    This function reads each element in elements_dict from the DCM specified by file_path and
+    This function reads each element in elements_dict from the NIFTI specified by file_path and
     formats the data into a SQL query to be later executed by psycopg2.
 
     Parameters
@@ -85,7 +103,6 @@ def create_sql_query(table_name, elements, file_path):
         into the SQL query by the psycopg2 execute function.
     """
     img = nib.load(file_path)
-
     # Go through the list of elements and try to read the value
     for element_name in elements.keys():
         try:

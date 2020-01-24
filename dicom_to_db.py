@@ -28,6 +28,8 @@ def dicom_to_db(elements_json, config_file_name, section_name):
     section_name : string
         Name of the section in the elements_json that has the column info for that table
     """
+    logging.info('Attempting to store DICOM metadata from DCMs in a folder to Postgres DB')
+
     # Create the database if it isn't already there
     db_name = config(filename=config_file_name, section='postgresql')['database']
     if not bdo.db_exists(config_file_name, db_name):
@@ -44,14 +46,14 @@ def dicom_to_db(elements_json, config_file_name, section_name):
         elements_dict = json.load(file_reader)
     elements_original = elements_dict[section_name]
 
+    # Read images one at a time
     folder_path = config(filename=config_file_name, section='dicom_folder')['folder_path']
     pathlist = Path(folder_path).glob('**/*.dcm')
     for path in pathlist:
         elements = elements_original.copy()
-        # read each image in the subdirectories
-        file_path = str(path)
 
-        logging.info('Starting to read ' + file_path)
+        file_path = str(path)
+        logging.info('Reading: ' + file_path)
 
         # Insert the DICOM metadata as a new record in the Postgres DB
         conn = None
@@ -63,19 +65,19 @@ def dicom_to_db(elements_json, config_file_name, section_name):
             cur = conn.cursor()
             # Create the SQL query to be used
             sql_query, values = create_sql_query(table_name, elements, file_path)
+            logging.debug('SQL Query: %s', sql_query)
             # create table one by one
             cur.execute(sql_query, values)
             # close communication with the PostgreSQL database server
             cur.close()
             # commit the changes
             conn.commit()
+            logging.info('Metadata stored')
         except (psycopg2.DatabaseError) as error:
             logging.warning(error)
         finally:
             if conn is not None:
                 conn.close()
-
-        logging.info('Done reading ' + file_path)
 
 # TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):

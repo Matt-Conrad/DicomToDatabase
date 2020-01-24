@@ -57,7 +57,7 @@ def dicom_to_db(elements_json, config_file_name, section_name):
         elements = elements_original.copy()
 
         file_path = str(path)
-        logging.info('Reading: ' + file_path)
+        logging.debug('Storing: ' + file_path)
 
         # Insert the DICOM metadata as a new record in the Postgres DB
         conn = None
@@ -76,12 +76,13 @@ def dicom_to_db(elements_json, config_file_name, section_name):
             cur.close()
             # commit the changes
             conn.commit()
-            logging.info('Metadata stored')
+            logging.debug('Stored')
         except (psycopg2.DatabaseError) as error:
-            logging.warning(error)
+            logging.debug(error)
         finally:
             if conn is not None:
                 conn.close()
+            logging.info('Done storing metadata')
 
 # TODO: Create a more specific name for this function
 def create_sql_query(table_name, elements, file_path):

@@ -139,5 +139,5 @@ def create_sql_query(table_name, elements, file_path):
     return (sql_query, values)
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='nifti_to_db.log', level=logging.DEBUG)
-    nifti_to_db('elements.json', 'config.ini', 'elements')
+    logging.basicConfig(filename='nifti_to_db.log', level=logging.INFO)
+    nifti_to_db('elements.json', 'config.ini', 'nifti_elements')

@@ -178,4 +178,4 @@ def data_adjustments(elements):
 
 if __name__ == "__main__":
     logging.basicConfig(filename='dicom_to_db.log', level=logging.DEBUG)
-    dicom_to_db('elements.json', 'config.ini', 'elements')
+    dicom_to_db('elements.json', 'config.ini', 'dicom_elements')

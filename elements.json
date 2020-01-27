@@ -1,5 +1,11 @@
 {
-    "elements": {
+    "nifti_elements": {
+        "sizeof_hdr": {
+            "db_datatype": "SMALLINT",
+            "calculation_only": false
+        }
+    },
+    "dicom_elements": {
         "patient_id": {
             "tag": "0x0010, 0x0020",
             "db_datatype": "SMALLINT",

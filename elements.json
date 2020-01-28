@@ -1,7 +1,27 @@
 {
     "nifti_elements": {
-        "sizeof_hdr": {
-            "db_datatype": "SMALLINT",
+        "dim": {
+            "db_datatype": "INTEGER[8]",
+            "calculation_only": false
+        },
+        "pixdim": {
+            "db_datatype": "DOUBLE PRECISION[8]",
+            "calculation_only": false
+        },
+        "datatype": {
+            "db_datatype": "VARCHAR(255)",
+            "calculation_only": false
+        },
+        "xyzt_units": {
+            "db_datatype": "INTEGER",
+            "calculation_only": false
+        },
+        "cal_max": {
+            "db_datatype": "DOUBLE PRECISION",
+            "calculation_only": false
+        },
+        "cal_min": {
+            "db_datatype": "DOUBLE PRECISION",
             "calculation_only": false
         }
     },

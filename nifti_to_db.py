@@ -8,12 +8,15 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import psycopg2
 import nibabel as nib
+import numpy as np
 # These next 2 lines are so modules using this package as a submodule can use this.
 import sys
 sys.path.append("./DicomToDatabase")
 # 
 from config import config
 import basic_db_ops as bdo
+
+DESIRED_SUFFIXES = ['injured.nii', 'uninjured.nii']
 
 def nifti_to_db(elements_json, config_file_name, section_name):
     """Move all desired NIFTI metadata from a directory full of NIFTIs into a PostgreSQL DB.
@@ -53,11 +56,17 @@ def nifti_to_db(elements_json, config_file_name, section_name):
     folder_path = config(filename=config_file_name, section='nifti_folder')['folder_path']
     pathlist = Path(folder_path).glob('**/*.nii')
     for path in pathlist:
-        elements = elements_original.copy()
         # read each image in the subdirectories
         file_path = str(path)
 
-        logging.info('Reading: ' + file_path)
+        # Only want image files that contain suffixes in the DESIRED_SUFFIXES list
+        suffix_exists_in_path = [suffix for suffix in DESIRED_SUFFIXES if(suffix in file_path)] 
+        if not bool(suffix_exists_in_path):
+            continue
+
+        elements = elements_original.copy()
+
+        logging.info('Storing: ' + file_path)
 
         # Insert the DICOM metadata as a new record in the Postgres DB
         conn = None
@@ -77,9 +86,10 @@ def nifti_to_db(elements_json, config_file_name, section_name):
             cur.close()
             # commit the changes
             conn.commit()
-            logging.info('Metadata stored')
+            logging.info('Stored')
         except (psycopg2.DatabaseError) as error:
             logging.warning(error)
+            logging.warning('Not stored')
         finally:
             if conn is not None:
                 conn.close()
@@ -111,8 +121,9 @@ def create_sql_query(table_name, elements, file_path):
     for element_name in elements.keys():
         try:
             value = img.header[element_name]
-            print(value)
-            elements[element_name]['value'] = int(value)
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
+            elements[element_name]['value'] = value
         except (KeyError) as tag: # if the value isn't there, then set it as None
             logging.warning('Cannot read the following NIFTI tag: ' + element_name)
             elements[element_name]['value'] = None

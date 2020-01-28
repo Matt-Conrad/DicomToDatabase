@@ -177,5 +177,5 @@ def data_adjustments(elements):
             '\\'.join(elements['patient_orientation']['value'])
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='dicom_to_db.log', level=logging.DEBUG)
+    logging.basicConfig(filename='dicom_to_db.log', level=logging.INFO)
     dicom_to_db('elements.json', 'config.ini', 'dicom_elements')

@@ -2,12 +2,12 @@
 import os
 import json
 import logging
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-# These next 2 lines are so modules using this package as a submodule can use this.
+# This line is so modules using this package as a submodule can use this.
 import sys
 sys.path.append("./DicomToDatabase")
-# 
+#
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from config import config
 
 def check_server_connection(db_config_file_name):

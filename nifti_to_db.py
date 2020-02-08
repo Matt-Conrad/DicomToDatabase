@@ -5,14 +5,14 @@ import os
 import json
 from pathlib import Path
 from datetime import datetime
+# This line is so modules using this package as a submodule can use this.
+import sys
+sys.path.append("./DicomToDatabase")
+#
 from dateutil.relativedelta import relativedelta
 import psycopg2
 import nibabel as nib
 import numpy as np
-# These next 2 lines are so modules using this package as a submodule can use this.
-import sys
-sys.path.append("./DicomToDatabase")
-# 
 from config import config
 import basic_db_ops as bdo
 

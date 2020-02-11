@@ -230,7 +230,8 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
         if not elements[element_name]['calculation_only']:
             sql_query = sql_query + element_name + ' ' + elements[element_name]['db_datatype'] \
                 + ',' + os.linesep
-    sql_query = sql_query[:-2] + ');'
+    margin_to_remove = -1 * (len(os.linesep) + 1)
+    sql_query = sql_query[:margin_to_remove] + ');'
 
     conn = None
     try:

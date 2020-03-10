@@ -9,7 +9,11 @@
             "calculation_only": false
         },
         "datatype": {
-            "db_datatype": "VARCHAR(255)",
+            "db_datatype": "SMALLINT",
+            "calculation_only": false
+        },
+        "bitpix": {
+            "db_datatype": "SMALLINT",
             "calculation_only": false
         },
         "xyzt_units": {

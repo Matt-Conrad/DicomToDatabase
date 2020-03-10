@@ -161,6 +161,59 @@ def table_exists(db_config_file_name, db_name, table_name):
             logging.debug('Database connection closed.')
     return result
 
+def count_records(db_config_file_name):
+    """Checks the count of records in the table in a DB in a PostgreSQL DB server.
+
+    Parameters
+    ----------
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
+    db_name : string
+        The name of the database we wish to check
+    table_name : string
+        The name of the table we wish to check the existence of
+
+    Returns
+    -------
+    int
+        Return the count of records in the table
+    """
+    db_name = config(filename=db_config_file_name, section='postgresql')['database']
+    table_name = config(filename=db_config_file_name, section='table_info')['metadata_table_name']
+    logging.info('Checking for existence of table %s in DB %s ', table_name, db_name)
+    conn = None
+    result = None
+    try:
+        # read connection parameters
+        params = config(filename=db_config_file_name, section='postgresql')
+        params['database'] = db_name
+
+        # connect to the PostgreSQL server
+        logging.debug('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        logging.debug('Connection established')
+
+        # execute a statement
+        sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
+        cur.execute(sql_query, (table_name,))
+        result = cur.fetchone()[0]
+
+       # close the cursor with the PostgreSQL
+        cur.close()
+
+    # If an exception is raised along the way, report it
+    except (psycopg2.DatabaseError) as error:
+        logging.warning(error)
+
+    # At the end, if the connection still exists then close it
+    finally:
+        if conn is not None:
+            logging.debug('Attempting to close connection')
+            conn.close()
+            logging.debug('Database connection closed.')
+    return result
+
 def drop_table(table_name, db_config_file_name):
     """Drop a table in the desired DB.
 
@@ -293,4 +346,3 @@ def create_new_db(db_name):
 
 if __name__ == "__main__":
     logging.basicConfig(filename='basic_db_ops.log', level=logging.DEBUG)
-    table_exists('config.ini', 'test', 'no')

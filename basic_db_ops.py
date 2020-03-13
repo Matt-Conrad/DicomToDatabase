@@ -161,7 +161,7 @@ def table_exists(db_config_file_name, db_name, table_name):
             logging.debug('Database connection closed.')
     return result
 
-def count_records(db_config_file_name):
+def count_records(db_config_file_name, db_name, table_name):
     """Checks the count of records in the table in a DB in a PostgreSQL DB server.
 
     Parameters
@@ -178,9 +178,7 @@ def count_records(db_config_file_name):
     int
         Return the count of records in the table
     """
-    db_name = config(filename=db_config_file_name, section='postgresql')['database']
-    table_name = config(filename=db_config_file_name, section='table_info')['metadata_table_name']
-    logging.info('Checking for existence of table %s in DB %s ', table_name, db_name)
+    logging.info('Counting the number of records in table %s in DB %s ', table_name, db_name)
     conn = None
     result = None
     try:

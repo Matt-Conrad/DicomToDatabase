@@ -1,5 +1,4 @@
 """Contains script that moves all DCM tag-values from a directory of DCMs into a PostgreSQL DB."""
-
 import logging
 import os
 import json
@@ -14,6 +13,7 @@ import numpy as np
 from config import config
 import basic_db_ops as bdo
 
+# Types of files we want from the dataset
 DESIRED_SUFFIXES = ['injured.nii', 'uninjured.nii']
 
 def nifti_to_db(elements_json, config_file_name, section_name):

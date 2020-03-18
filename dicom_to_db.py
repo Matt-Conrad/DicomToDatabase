@@ -1,5 +1,4 @@
 """Contains script that moves all DCM tag-values from a directory of DCMs into a PostgreSQL DB."""
-
 import logging
 import os
 import json
@@ -97,7 +96,7 @@ def create_sql_query(table_name, elements, file_path):
         The name of the table that the SQL query is to be aimed at
     elements : dict
         The dictionary containing all of the info from the elements_json
-    file_path : [type]
+    file_path : string
         The file path of the DCM we're interested in
 
     Returns

@@ -122,7 +122,7 @@ def table_exists(db_config_file_name, db_name, table_name):
     bool
         Return True if the table exists or False if the table doesn't exist
     """
-    logging.info('Checking for existence of table %s in DB %s ', table_name, db_name)
+    logging.debug('Checking for existence of table %s in DB %s ', table_name, db_name)
     conn = None
     result = None
     try:
@@ -151,7 +151,7 @@ def table_exists(db_config_file_name, db_name, table_name):
 
     # If an exception is raised along the way, report it
     except (psycopg2.DatabaseError) as error:
-        logging.warning(error)
+        logging.debug(str(error).rstrip())
 
     # At the end, if the connection still exists then close it
     finally:
@@ -178,7 +178,7 @@ def count_records(db_config_file_name, db_name, table_name):
     int
         Return the count of records in the table
     """
-    logging.info('Counting the number of records in table %s in DB %s ', table_name, db_name)
+    logging.debug('Counting the number of records in table %s in DB %s ', table_name, db_name)
     conn = None
     result = None
     try:

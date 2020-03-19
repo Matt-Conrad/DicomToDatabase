@@ -1,5 +1,6 @@
 """Contains a function that will read parameters from a config file (INI format)."""
 import logging
+import os
 from configparser import ConfigParser
 
 def config(filename, section):
@@ -25,7 +26,10 @@ def config(filename, section):
     # create a parser
     parser = ConfigParser()
     # read config file
-    parser.read(filename)
+    if os.path.exists(filename):
+        parser.read(filename)
+    else:
+        raise OSError('File {0} not found'.format(filename))
 
     # get section, default to postgresql
     db = {}

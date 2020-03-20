@@ -320,6 +320,7 @@ def create_new_db(db_name):
         Name of the new DB
     """
     logging.info('Attempting to create a new DB')
+    conn = None
     try:
         # connect to the PostgreSQL server
         logging.debug('Connecting to the PostgreSQL database...')

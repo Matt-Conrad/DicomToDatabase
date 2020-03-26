@@ -276,7 +276,8 @@ def add_table_to_db(table_name, elements_json, db_config_file_name, section_name
 
     # Make the SQL query
     sql_query = 'CREATE TABLE ' + table_name + ' (' + os.linesep + \
-        'file_path VARCHAR(255) PRIMARY KEY,' + os.linesep
+        'file_name VARCHAR(255) PRIMARY KEY,' + os.linesep + \
+        'file_path VARCHAR(255),' + os.linesep
     for element_name in elements:
         if not elements[element_name]['calculation_only']:
             sql_query = sql_query + element_name + ' ' + elements[element_name]['db_datatype'] \
@@ -335,6 +336,66 @@ def create_new_db(db_name):
         cur.close()
         conn.commit()
         logging.info('Database successfully created')
+    except (psycopg2.DatabaseError) as error:
+        logging.warning(error)
+    finally:
+        if conn is not None:
+            logging.debug('Attempting to close connection')
+            conn.close()
+            logging.debug('Database connection closed.')
+
+def import_image_label_data(table_name, csv_full_path, elements_json, db_config_file_name, section_name):
+    """Import data into a table in the desired DB.
+
+    Parameters
+    ----------
+    table_name : string
+        Name of the table to add the data to
+    csv_full_path : string
+        Name of the CSV containing the image labels
+    elements_json : string
+        Name of the JSON containing the list of elements. Each element name that is not
+        calculation_only will be a column in the new table
+    db_config_file_name : string
+        The file name of the INI file that contains the information on the DB server
+    section_name : string
+        Name of the section in the elements_json that has the column info for that table
+    """
+    logging.info('Attempting to import table to DB')
+
+    # Add table
+    add_table_to_db(table_name, elements_json, db_config_file_name, section_name)
+
+    # Open the json with the list of elements we're interested in
+    with open(elements_json) as file_reader:
+        elements_json = json.load(file_reader)
+    elements = elements_json[section_name]
+
+    # Make the SQL query
+    sql_query = 'COPY ' + table_name + '(file_name, file_path, '
+    for element_name in elements:
+        if not elements[element_name]['calculation_only']:
+            sql_query = sql_query + element_name + ','
+    sql_query = sql_query[:-1] + ') FROM \'' + csv_full_path + '\' DELIMITER \',\' CSV HEADER;'
+
+    conn = None
+    try:
+        # read the connection parameters
+        params = config(filename=db_config_file_name, section='postgresql')
+
+        # connect to the PostgreSQL server
+        logging.debug('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        logging.debug('Connection established')
+
+        # create table one by one
+        cur.execute(sql_query)
+        # close communication with the PostgreSQL database server
+        cur.close()
+        # commit the changes
+        conn.commit()
+        logging.info('Import successful')
     except (psycopg2.DatabaseError) as error:
         logging.warning(error)
     finally:

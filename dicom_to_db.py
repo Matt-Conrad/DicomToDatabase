@@ -129,9 +129,9 @@ def create_sql_query(table_name, elements, file_path):
     data_adjustments(elements)
 
     # Create the list of values that we're going to use to build the query
-    names = ['file_path']
-    values = [file_path]
-    placeholders = ['%s']
+    names = ['file_name', 'file_path']
+    values = [file_path.split(os.sep)[-1], file_path]
+    placeholders = ['%s', '%s']
     # Append any value to this list that isn't birth_date or study_date
     for element_name in elements.keys():
         if not elements[element_name]['calculation_only']:

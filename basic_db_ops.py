@@ -4,7 +4,7 @@ import json
 import logging
 # This line is so modules using this package as a submodule can use this.
 import sys
-sys.path.append("./DicomToDatabase")
+sys.path.append(sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')))
 #
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT

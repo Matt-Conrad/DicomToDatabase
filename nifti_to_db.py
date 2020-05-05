@@ -1,15 +1,15 @@
 """Contains script that moves all DCM tag-values from a directory of DCMs into a PostgreSQL DB."""
 import logging
+import sys
 import os
 import json
 from pathlib import Path
-# This line is so modules using this package as a submodule can use this.
-import sys
-sys.path.append(sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')))
-#
 import psycopg2
 import nibabel as nib
 import numpy as np
+# This line is so modules using this package as a submodule can use this.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/'))
+#
 from config import config
 import basic_db_ops as bdo
 

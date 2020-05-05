@@ -1,13 +1,13 @@
 """Module contains functions that are basic and common DB operations."""
 import os
+import sys
 import json
 import logging
-# This line is so modules using this package as a submodule can use this.
-import sys
-sys.path.append(sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')))
-#
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+# This line is so modules using this package as a submodule can use this.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/'))
+#
 from config import config
 
 def check_server_connection(db_config_file_name):

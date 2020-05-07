@@ -3,3 +3,6 @@ config.ini
 .vscode
 __pycache__
 *.log
+build
+dist
+*.egg-info

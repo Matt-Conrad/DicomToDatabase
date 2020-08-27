@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="metadata_to_db",
-    version="0.0.1",
+    version="0.0.2",
     author="Matt-Conrad",
     author_email="mattgrayconrad@gmail.com",
     description="Library for storing image metadata from a directory of images to a PostgreSQL DB.",

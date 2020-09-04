@@ -4,6 +4,7 @@ import sys
 import json
 import logging
 import psycopg2
+import psycopg2.extras
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 # This line is so modules using this package as a submodule can use this.
 sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/'))
@@ -90,8 +91,8 @@ class DatabaseHandler:
         try:
             # execute a statement
             sql_query = "SELECT * FROM information_schema.tables WHERE table_name=%s"
-            self.retrieveCursor.execute(sql_query, (table_name,))
-            if self.retrieveCursor.fetchone() is None:
+            self.countCursor.execute(sql_query, (table_name,))
+            if self.countCursor.fetchone() is None:
                 result = False
             else:
                 result = True

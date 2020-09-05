@@ -30,6 +30,7 @@ class DatabaseHandler:
         self.retrieveCursor = self.openCursor(self.connection)
         self.storeCursor = self.openCursor(self.connection) 
         self.countCursor = self.openCursor(self.connection)
+        self.generalCursor = self.openCursor(self.connection)
 
     def openConnection(self, open_default=False):
         """Opens a connection to DB.
@@ -88,31 +89,20 @@ class DatabaseHandler:
 
     def table_exists(self, table_name):
         result = None
-        try:
-            # execute a statement
-            sql_query = "SELECT * FROM information_schema.tables WHERE table_name=%s"
-            self.countCursor.execute(sql_query, (table_name,))
-            if self.countCursor.fetchone() is None:
-                result = False
-            else:
-                result = True
-            logging.info('Table %s exists: %s', table_name, str(result))
-        except (psycopg2.DatabaseError) as error:
-            logging.debug(str(error).rstrip())
+        sql_query = "SELECT * FROM information_schema.tables WHERE table_name=\'" + table_name + "\';"
+        self.executeQuery(self.generalCursor, sql_query)
+        if self.generalCursor.fetchone() is None:
+            result = False
+        else:
+            result = True
+        logging.info('Table %s exists: %s', table_name, str(result))
         return result
 
     def count_records(self, table_name):
         """Checks the count of records in a table."""
-        result = None
-        try:
-            # execute a statement
-            sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
-            self.countCursor.execute(sql_query, (table_name,))
-            result = self.countCursor.fetchone()[0]
-        except (psycopg2.DatabaseError) as error:
-            logging.warning(error)
-        logging.debug(logging.debug('%s records in table %s', result, table_name))
-        return result
+        sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
+        self.executeQuery(self.countCursor, sql_query)
+        return self.countCursor.fetchone()[0]
 
     def drop_table(table_name):
         logging.info('Attempting to drop table: %s', table_name)

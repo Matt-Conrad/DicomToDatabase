@@ -20,15 +20,9 @@ class DicomToDatabase:
     def dicomToDb(self, db_name, metaTableName, columnsInfoPath):
         logging.info('Attempting to store DICOM metadata from DCMs in a folder to Postgres DB')
         
-        config_file_name =  self.configHandler.getConfigFilename()
-        section_name = "elements"
-
-        if not self.dbHandler.table_exists(metaTableName):
-            self.dbHandler.add_table_to_db(metaTableName, columnsInfoPath, section_name)
-
         with open(columnsInfoPath) as file_reader:
             elements_dict = json.load(file_reader)
-        elements_original = elements_dict[section_name]
+        elements_original = elements_dict["elements"]
 
         folderRelPath = "./" + self.configHandler.getDatasetName()
         pathlist = Path(folderRelPath).glob('**/*.dcm')

@@ -18,7 +18,6 @@ class DatabaseHandler:
         # Open cursor to the default server (named postgres)
         self.default_connection = self.openConnection(open_default=True)
         self.default_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        self.default_cursor = self.openCursor(self.default_connection)
 
         if not self.db_exists(self.dbInfo["database"]):
             self.create_new_db(self.dbInfo["database"])
@@ -26,11 +25,6 @@ class DatabaseHandler:
         # Open cursor to the server specified in the config file
         self.connection = self.openConnection()
         self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-
-        self.retrieveCursor = self.openCursor(self.connection)
-        self.storeCursor = self.openCursor(self.connection) 
-        self.countCursor = self.openCursor(self.connection)
-        self.generalCursor = self.openCursor(self.connection)
 
     def openConnection(self, open_default=False):
         """Opens a connection to DB.
@@ -52,16 +46,13 @@ class DatabaseHandler:
 
     def closeConnection(self):
         logging.info('Closing connection')
-        try:
-            self.retrieveCursor.close()
-            self.storeCursor.close()
-            self.countCursor.close()
-        except (psycopg2.DatabaseError) as error:
-            logging.warning(error)
-        finally:
-            if self.connection is not None:
-                self.connection.close()
-                logging.info('Connection closed')
+        if self.connection is not None:
+            self.connection.close()
+            logging.info('Connection closed')
+
+        if self.default_connection is not None:
+            self.default_connection.close()
+            logging.info('Connection closed')
 
     def closeCursor(self, cursor):
         logging.info('Closing cursor')
@@ -72,15 +63,17 @@ class DatabaseHandler:
 
     def check_server_connection(self):
         logging.info('Checking connection to Postgres server')
-        self.executeQuery(self.default_cursor, 'SELECT version()')
-        if self.default_cursor.fetchone() is not None:
+        cursor = self.openCursor(self.default_connection)
+        self.executeQuery(cursor, 'SELECT version()')
+        if cursor.fetchone() is not None:
             logging.info('Server connection confirmed')
 
     def db_exists(self, db_name):
         result = None
         sql_query = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + db_name + '\''
-        self.executeQuery(self.default_cursor, sql_query)
-        if self.default_cursor.fetchone() is None:
+        cursor = self.openCursor(self.default_connection)
+        self.executeQuery(cursor, sql_query)
+        if cursor.fetchone() is None:
             result = False
         else:
             result = True
@@ -90,8 +83,9 @@ class DatabaseHandler:
     def table_exists(self, table_name):
         result = None
         sql_query = "SELECT * FROM information_schema.tables WHERE table_name=\'" + table_name + "\';"
-        self.executeQuery(self.generalCursor, sql_query)
-        if self.generalCursor.fetchone() is None:
+        cursor = self.openCursor(self.connection)
+        self.executeQuery(cursor, sql_query)
+        if cursor.fetchone() is None:
             result = False
         else:
             result = True
@@ -101,12 +95,14 @@ class DatabaseHandler:
     def count_records(self, table_name):
         """Checks the count of records in a table."""
         sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
-        self.executeQuery(self.countCursor, sql_query)
-        return self.countCursor.fetchone()[0]
+        cursor = self.openCursor(self.connection)
+        self.executeQuery(cursor, sql_query)
+        return cursor.fetchone()[0]
 
     def drop_table(table_name):
         logging.info('Attempting to drop table: %s', table_name)
-        self.executeQuery(self.storeCursor, 'DROP TABLE ' + table_name + ';')
+        cursor = self.openCursor(self.connection)
+        self.executeQuery(cursor, 'DROP TABLE ' + table_name + ';')
         logging.info("Dropped table: %s", table_name)
 
     def add_table_to_db(self, table_name, columns_info_path, section_name):
@@ -125,12 +121,14 @@ class DatabaseHandler:
                 sql_query = sql_query + column_name + ' ' + columns[column_name]['db_datatype'] + ',' + os.linesep
         margin_to_remove = -1 * (len(os.linesep) + 1)
         sql_query = sql_query[:margin_to_remove] + ');'
-        self.executeQuery(self.storeCursor, sql_query)
+        cursor = self.openCursor(self.connection)
+        self.executeQuery(cursor, sql_query)
         self.table_exists(table_name)
 
     def create_new_db(self, db_name):
         logging.info('Attempting to create a new DB')
-        self.executeQuery(self.default_cursor, 'CREATE DATABASE ' + db_name + ';')
+        cursor = self.openCursor(self.default_connection)
+        self.executeQuery(cursor, 'CREATE DATABASE ' + db_name + ';')
         self.db_exists(db_name)
     
     def executeQuery(self, cursor, query, values=None):

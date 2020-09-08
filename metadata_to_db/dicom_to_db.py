@@ -34,7 +34,8 @@ class DicomToDatabase:
 
             # Insert the DICOM metadata as a new record in the Postgres DB
             sql_query, values = self.create_sql_query(metaTableName, elements, file_path)
-            self.dbHandler.executeQuery(self.dbHandler.storeCursor, sql_query, values)
+            cursor = self.dbHandler.openCursor(self.dbHandler.connection)
+            self.dbHandler.executeQuery(cursor, sql_query, values)
                     
         logging.info('Done storing metadata')
 

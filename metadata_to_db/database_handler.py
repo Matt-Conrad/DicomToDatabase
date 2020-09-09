@@ -26,10 +26,6 @@ class DatabaseHandler:
         self.connection = self.openConnection()
         self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
-    def __del__(self):
-        self.closeConnection(self.default_connection)
-        self.closeConnection(self.connection)
-
     def openConnection(self, open_default=False):
         """Opens a connection to DB.
         
@@ -44,14 +40,13 @@ class DatabaseHandler:
         logging.info("Opening connection to DB: %s", params['database'])
         return psycopg2.connect(**params)
 
-    def openCursor(self, connection):
-        logging.info("Opening cursor in given connection")
-        return connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
     def closeConnection(self, connection):
         logging.info('Closing connection')
         if connection is not None:
             connection.close()
+
+    def openCursor(self, connection):
+        return connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     def closeCursor(self, cursor):
         logging.info('Closing cursor')
@@ -62,13 +57,13 @@ class DatabaseHandler:
 
     def check_server_connection(self):
         logging.info('Checking connection to Postgres server')
-        if self.executeQuery(self.connection, 'SELECT version()', fetchHowMany="one") is not None:
+        if self.executeQuery(self.connection, 'SELECT version()').fetchone() is not None:
             logging.info('Server connection confirmed')
 
     def db_exists(self, db_name):
         result = None
         sql_query = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + db_name + '\''
-        if self.executeQuery(self.default_connection, sql_query, fetchHowMany="one") is None:
+        if self.executeQuery(self.default_connection, sql_query).fetchone() is None:
             result = False
         else:
             result = True
@@ -78,7 +73,7 @@ class DatabaseHandler:
     def table_exists(self, table_name):
         result = None
         sql_query = "SELECT * FROM information_schema.tables WHERE table_name=\'" + table_name + "\';"
-        if self.executeQuery(self.connection, sql_query, fetchHowMany="one") is None:
+        if self.executeQuery(self.connection, sql_query).fetchone() is None:
             result = False
         else:
             result = True
@@ -88,7 +83,7 @@ class DatabaseHandler:
     def count_records(self, table_name):
         """Checks the count of records in a table."""
         sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
-        return self.executeQuery(self.connection, sql_query, fetchHowMany="one")[0]
+        return self.executeQuery(self.connection, sql_query).fetchone()[0]
 
     def drop_table(table_name):
         logging.info('Attempting to drop table: %s', table_name)
@@ -124,37 +119,14 @@ class DatabaseHandler:
         self.closeConnection(self.connection)
         self.executeQuery(self.default_connection, 'DROP DATABASE ' + db_name + ';')
         self.db_exists(db_name)
-    
-    def executeQuery(self, connection, query, values=None, fetchHowMany=None):
-        """Executes a query in the desired cursor."""
-        result = None
+
+    def executeQuery(self, connection, query, values=None):
         cursor = self.openCursor(connection)
         try:
             if values is None:
                 cursor.execute(query)
             else:
                 cursor.execute(query, values)
-
-            if fetchHowMany == "all":
-                result = cursor.fetchall()
-            elif fetchHowMany == "one":
-                result = cursor.fetchone()
-            else:
-                pass
-
         except (psycopg2.DatabaseError) as error:
             logging.warning(error)
-        
-        return result
-
-    def executeQuery2(self, cursor, query, values=None):
-        """Executes a query in the desired cursor."""
-        try:
-            if values is None:
-                cursor.execute(query)
-            else:
-                cursor.execute(query, values)
-
-        except (psycopg2.DatabaseError) as error:
-            logging.warning(error)
-
+        return cursor

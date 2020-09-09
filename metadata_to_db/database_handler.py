@@ -118,6 +118,12 @@ class DatabaseHandler:
         logging.info('Attempting to create a new DB')
         self.executeQuery(self.default_connection, 'CREATE DATABASE ' + db_name + ';')
         self.db_exists(db_name)
+
+    def drop_db(self, db_name):
+        logging.info('Attempting to drop a new DB')
+        self.closeConnection(self.connection)
+        self.executeQuery(self.default_connection, 'DROP DATABASE ' + db_name + ';')
+        self.db_exists(db_name)
     
     def executeQuery(self, connection, query, values=None, fetchHowMany=None):
         """Executes a query in the desired cursor."""

@@ -16,7 +16,7 @@ import basic_db_ops as bdo
 # Types of files we want from the dataset
 DESIRED_SUFFIXES = ['injured.nii', 'uninjured.nii']
 
-def nifti_to_db(elements_json, config_file_name, section_name):
+def nifti_to_db(elements_json, config_file_name, sectionName):
     """Move all desired NIFTI metadata from a directory full of NIFTIs into a PostgreSQL DB.
 
     This function goes through all of the NIFTI files in the directory specified in the 'postgresql'
@@ -30,26 +30,26 @@ def nifti_to_db(elements_json, config_file_name, section_name):
         The name of the JSON that contains the list of elements we want to read from the DICOM
     config_file_name : string
         The name of the file that contains DB and DICOM folder info
-    section_name : string
+    sectionName : string
         Name of the section in the elements_json that has the column info for that table
     """
     logging.info('Attempting to store NIFTI metadata from DCMs in a folder to Postgres DB')
     
     # Create the database if it isn't already there
-    db_name = config(filename=config_file_name, section='postgresql')['database']
-    if not bdo.db_exists(config_file_name, db_name):
-        bdo.create_new_db(db_name)
+    dbName = config(filename=config_file_name, section='postgresql')['database']
+    if not bdo.dbExists(config_file_name, dbName):
+        bdo.createNewDb(dbName)
 
     # Create table if it isn't already there
-    db_name = config(filename=config_file_name, section='postgresql')['database']
-    table_name = config(filename=config_file_name, section='table_info')['metadata_table_name']
-    if not bdo.table_exists(config_file_name, db_name, table_name):
-        bdo.add_table_to_db(table_name, elements_json, config_file_name, section_name)
+    dbName = config(filename=config_file_name, section='postgresql')['database']
+    tableName = config(filename=config_file_name, section='table_info')['metadata_tableName']
+    if not bdo.tableExists(config_file_name, dbName, tableName):
+        bdo.addTableToDb(tableName, elements_json, config_file_name, sectionName)
 
     # Open the json with the list of elements we're interested in
-    with open(elements_json) as file_reader:
-        elements_dict = json.load(file_reader)
-    elements_original = elements_dict[section_name]
+    with open(elements_json) as fileReader:
+        elementsDict = json.load(fileReader)
+    elementsOriginal = elementsDict[sectionName]
 
     folder_path = config(filename=config_file_name, section='nifti_folder')['folder_path']
     pathlist = Path(folder_path).glob('**/*.nii')
@@ -62,7 +62,7 @@ def nifti_to_db(elements_json, config_file_name, section_name):
         if not bool(suffix_exists_in_path):
             continue
 
-        elements = elements_original.copy()
+        elements = elementsOriginal.copy()
 
         logging.info('Storing: ' + file_path)
 
@@ -71,15 +71,15 @@ def nifti_to_db(elements_json, config_file_name, section_name):
         try:
             # read the connection parameters
             params = config(filename=config_file_name, section='postgresql')
-            table_name = config(filename=config_file_name, section='table_info')['metadata_table_name']
+            tableName = config(filename=config_file_name, section='table_info')['metadata_tableName']
             # # connect to the PostgreSQL server
             conn = psycopg2.connect(**params)
             cur = conn.cursor()
             # Create the SQL query to be used
-            sql_query, values = create_sql_query(table_name, elements, file_path)
-            logging.debug('SQL Query: %s', sql_query)
+            sqlQuery, values = createSqlQuery(tableName, elements, file_path)
+            logging.debug('SQL Query: %s', sqlQuery)
             # create table one by one
-            cur.execute(sql_query, values)
+            cur.execute(sqlQuery, values)
             # close communication with the PostgreSQL database server
             cur.close()
             # commit the changes
@@ -93,15 +93,15 @@ def nifti_to_db(elements_json, config_file_name, section_name):
                 conn.close()
 
 # TODO: Create a more specific name for this function
-def create_sql_query(table_name, elements, file_path):
+def createSqlQuery(tableName, elements, file_path):
     """Create the SQL query for inserting a record.
 
-    This function reads each element in elements_dict from the NIFTI specified by file_path and
+    This function reads each element in elementsDict from the NIFTI specified by file_path and
     formats the data into a SQL query to be later executed by psycopg2.
 
     Parameters
     ----------
-    table_name : string
+    tableName : string
         The name of the table that the SQL query is to be aimed at
     elements : dict
         The dictionary containing all of the info from the elements_json
@@ -116,36 +116,36 @@ def create_sql_query(table_name, elements, file_path):
     """
     img = nib.load(file_path)
     # Go through the list of elements and try to read the value
-    for element_name in elements.keys():
+    for elementName in elements.keys():
         try:
-            value = img.header[element_name]
+            value = img.header[elementName]
             if isinstance(value, np.ndarray):
                 value = value.tolist()
-            elements[element_name]['value'] = value
+            elements[elementName]['value'] = value
         except (KeyError) as tag: # if the value isn't there, then set it as None
-            logging.warning('Cannot read the following NIFTI tag: ' + element_name)
-            elements[element_name]['value'] = None
+            logging.warning('Cannot read the following NIFTI tag: ' + elementName)
+            elements[elementName]['value'] = None
             continue
 
     # Adjust the data as necessary before storing
-    # data_adjustments(elements)
+    # dataAdjustments(elements)
 
     # Create the list of values that we're going to use to build the query
     names = ['file_path']
     values = [file_path]
     placeholders = ['%s']
     # Append any value to this list that isn't birth_date or study_date
-    for element_name in elements.keys():
-        if not elements[element_name]['calculation_only']:
-            names.append(element_name)
-            values.append(elements[element_name]['value'])
+    for elementName in elements.keys():
+        if not elements[elementName]['calculation_only']:
+            names.append(elementName)
+            values.append(elements[elementName]['value'])
             placeholders.append('%s')
 
     # Build the SQL query
-    sql_query = 'INSERT INTO ' + table_name + ' (' + ', '.join(names) + ')' + os.linesep \
+    sqlQuery = 'INSERT INTO ' + tableName + ' (' + ', '.join(names) + ')' + os.linesep \
         + 'VALUES (' + ', '.join(placeholders) + ');'
 
-    return (sql_query, values)
+    return (sqlQuery, values)
 
 if __name__ == "__main__":
     logging.basicConfig(filename='nifti_to_db.log', level=logging.INFO)

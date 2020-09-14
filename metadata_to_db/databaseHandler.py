@@ -16,26 +16,26 @@ class DatabaseHandler:
         self.dbInfo = self.configHandler.getDbInfo()
         
         # Open cursor to the default server (named postgres)
-        self.default_connection = self.openConnection(open_default=True)
-        self.default_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        self.defaultConnection = self.openConnection(openDefault=True)
+        self.defaultConnection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
-        if not self.db_exists(self.dbInfo["database"]):
-            self.create_new_db(self.dbInfo["database"])
+        if not self.dbExists(self.dbInfo["database"]):
+            self.createNewDb(self.dbInfo["database"])
 
         # Open cursor to the server specified in the config file
         self.connection = self.openConnection()
         self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
-    def openConnection(self, open_default=False):
+    def openConnection(self, openDefault=False):
         """Opens a connection to DB.
         
         Parameters
         ----------
-        open_default : bool
+        openDefault : bool
             Open a connection to the DB named postgres, otherwise to the DB specified in config file
         """
         params = self.dbInfo.copy()
-        if open_default:
+        if openDefault:
             params['database'] = 'postgres'
         logging.info("Opening connection to DB: %s", params['database'])
         return psycopg2.connect(**params)
@@ -55,70 +55,70 @@ class DatabaseHandler:
         except (psycopg2.DatabaseError) as error:
             logging.warning(error)
 
-    def check_server_connection(self):
+    def checkServerConnection(self):
         logging.info('Checking connection to Postgres server')
         if self.executeQuery(self.connection, 'SELECT version()').fetchone() is not None:
             logging.info('Server connection confirmed')
 
-    def db_exists(self, db_name):
+    def dbExists(self, dbName):
         result = None
-        sql_query = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + db_name + '\''
-        if self.executeQuery(self.default_connection, sql_query).fetchone() is None:
+        sqlQuery = 'SELECT datname FROM pg_catalog.pg_database WHERE datname=\'' + dbName + '\''
+        if self.executeQuery(self.defaultConnection, sqlQuery).fetchone() is None:
             result = False
         else:
             result = True
-        logging.debug("DB named %s existence: %s", db_name, str(result))
+        logging.debug("DB named %s existence: %s", dbName, str(result))
         return result
 
-    def table_exists(self, table_name):
+    def tableExists(self, tableName):
         result = None
-        sql_query = "SELECT * FROM information_schema.tables WHERE table_name=\'" + table_name + "\';"
-        if self.executeQuery(self.connection, sql_query).fetchone() is None:
+        sqlQuery = "SELECT * FROM information_schema.tables WHERE table_name=\'" + tableName + "\';"
+        if self.executeQuery(self.connection, sqlQuery).fetchone() is None:
             result = False
         else:
             result = True
-        logging.info('Table %s exists: %s', table_name, str(result))
+        logging.info('Table %s exists: %s', tableName, str(result))
         return result
 
-    def count_records(self, table_name):
+    def countRecords(self, tableName):
         """Checks the count of records in a table."""
-        sql_query = 'SELECT COUNT(*) FROM ' + table_name + ';'
-        return self.executeQuery(self.connection, sql_query).fetchone()[0]
+        sqlQuery = 'SELECT COUNT(*) FROM ' + tableName + ';'
+        return self.executeQuery(self.connection, sqlQuery).fetchone()[0]
 
-    def drop_table(table_name):
-        logging.info('Attempting to drop table: %s', table_name)
-        self.executeQuery(self.connection, 'DROP TABLE ' + table_name + ';')
-        logging.info("Dropped table: %s", table_name)
+    def dropTable(tableName):
+        logging.info('Attempting to drop table: %s', tableName)
+        self.executeQuery(self.connection, 'DROP TABLE ' + tableName + ';')
+        logging.info("Dropped table: %s", tableName)
 
-    def add_table_to_db(self, table_name, columns_info_path, section_name):
+    def addTableToDb(self, tableName, columnsInfoPath, sectionName):
         logging.info('Attempting to add table')
 
         # Open the json with the list of columns we're interested in
-        with open(columns_info_path) as file_reader:
-            columns_info = json.load(file_reader)
-        columns = columns_info[section_name]
+        with open(columnsInfoPath) as fileReader:
+            columnsInfo = json.load(fileReader)
+        columns = columnsInfo[sectionName]
 
         # Make the SQL query
-        sql_query = 'CREATE TABLE ' + table_name + ' (' + os.linesep + 'file_name VARCHAR(255) PRIMARY KEY,' + \
+        sqlQuery = 'CREATE TABLE ' + tableName + ' (' + os.linesep + 'file_name VARCHAR(255) PRIMARY KEY,' + \
             os.linesep + 'file_path VARCHAR(255),' + os.linesep
-        for column_name in columns:
-            if not columns[column_name]['calculation_only']:
-                sql_query = sql_query + column_name + ' ' + columns[column_name]['db_datatype'] + ',' + os.linesep
-        margin_to_remove = -1 * (len(os.linesep) + 1)
-        sql_query = sql_query[:margin_to_remove] + ');'
-        self.executeQuery(self.connection, sql_query)
-        self.table_exists(table_name)
+        for columnName in columns:
+            if not columns[columnName]['calculation_only']:
+                sqlQuery = sqlQuery + columnName + ' ' + columns[columnName]['db_datatype'] + ',' + os.linesep
+        marginToRemove = -1 * (len(os.linesep) + 1)
+        sqlQuery = sqlQuery[:marginToRemove] + ');'
+        self.executeQuery(self.connection, sqlQuery)
+        self.tableExists(tableName)
 
-    def create_new_db(self, db_name):
+    def createNewDb(self, dbName):
         logging.info('Attempting to create a new DB')
-        self.executeQuery(self.default_connection, 'CREATE DATABASE ' + db_name + ';')
-        self.db_exists(db_name)
+        self.executeQuery(self.defaultConnection, 'CREATE DATABASE ' + dbName + ';')
+        self.dbExists(dbName)
 
-    def drop_db(self, db_name):
+    def dropDb(self, dbName):
         logging.info('Attempting to drop a new DB')
         self.closeConnection(self.connection)
-        self.executeQuery(self.default_connection, 'DROP DATABASE ' + db_name + ';')
-        self.db_exists(db_name)
+        self.executeQuery(self.defaultConnection, 'DROP DATABASE ' + dbName + ';')
+        self.dbExists(dbName)
 
     def executeQuery(self, connection, query, values=None):
         cursor = self.openCursor(connection)

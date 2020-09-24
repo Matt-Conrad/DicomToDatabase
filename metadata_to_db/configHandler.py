@@ -1,6 +1,7 @@
 """Module contains class for handling config files of the INI format."""
 from configparser import ConfigParser
 import logging
+import atexit
 import os
 
 class ConfigHandler:
@@ -9,9 +10,7 @@ class ConfigHandler:
 
         self.parser = ConfigParser()
         self.readConfigFile()
-
-    def __del__(self):
-        self.writeConfigFile()
+        atexit.register(self.writeConfigFile)   
 
     # Functions for external use
     def getConfigFilename(self):
@@ -38,7 +37,7 @@ class ConfigHandler:
             for param in params:
                 section[param[0]] = param[1]
         else:
-            raise Exception('Section {0} not found in the {1} file'.format(sectionName, filename))
+            raise Exception('Section {0} not found in the {1} file'.format(sectionName, self.configFilename))
         return section
     
     def getSetting(self, sectionName, settingName):
@@ -46,6 +45,5 @@ class ConfigHandler:
 
     def setSetting(self, sectionName, settingName, value):
         self.parser[sectionName][settingName] = value
+        self.writeConfigFile()
 
-    
-    

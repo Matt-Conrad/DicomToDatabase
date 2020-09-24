@@ -85,27 +85,31 @@ class DatabaseHandler:
         sqlQuery = 'SELECT COUNT(*) FROM ' + tableName + ';'
         return self.executeQuery(self.connection, sqlQuery).fetchone()[0]
 
-    def dropTable(tableName):
+    def dropTable(self, tableName):
         logging.info('Attempting to drop table: %s', tableName)
         self.executeQuery(self.connection, 'DROP TABLE ' + tableName + ';')
         logging.info("Dropped table: %s", tableName)
 
-    def addTableToDb(self, tableName, columnsInfoPath, sectionName):
+    def addTableToDb(self, tableName, columnsInfoPath, nonElementSectionName, elementSectionName):
         logging.info('Attempting to add table')
 
         # Open the json with the list of columns we're interested in
         with open(columnsInfoPath) as fileReader:
             columnsInfo = json.load(fileReader)
-        columns = columnsInfo[sectionName]
-
+        
         # Make the SQL query
-        sqlQuery = 'CREATE TABLE ' + tableName + ' (' + os.linesep + 'file_name VARCHAR(255) PRIMARY KEY,' + \
-            os.linesep + 'file_path VARCHAR(255),' + os.linesep
-        for columnName in columns:
-            if not columns[columnName]['calculation_only']:
-                sqlQuery = sqlQuery + columnName + ' ' + columns[columnName]['db_datatype'] + ',' + os.linesep
-        marginToRemove = -1 * (len(os.linesep) + 1)
-        sqlQuery = sqlQuery[:marginToRemove] + ');'
+        sqlQuery = 'CREATE TABLE ' + tableName + ' ('
+
+        nonElementsColumns = columnsInfo[nonElementSectionName]
+        for columnName in nonElementsColumns:
+            sqlQuery = sqlQuery + columnName + ' ' + nonElementsColumns[columnName]['db_datatype'] + " " + nonElementsColumns[columnName]['constraints'] + ','
+
+        elementColumns = columnsInfo[elementSectionName]
+        for columnName in elementColumns:
+            if not elementColumns[columnName]['calculation_only']:
+                sqlQuery = sqlQuery + columnName + ' ' + elementColumns[columnName]['db_datatype'] + ','
+
+        sqlQuery = sqlQuery[:-1] + ');'
         self.executeQuery(self.connection, sqlQuery)
         self.tableExists(tableName)
 

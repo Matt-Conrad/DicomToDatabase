@@ -1,10 +1,10 @@
 """Contains script that moves all DCM tag-values from a directory of DCMs into a PostgreSQL DB."""
 import os
 import logging
-import requests
 import sys
 import json
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import psycopg2
 from pathlib import Path
 import pydicom as pdm

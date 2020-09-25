@@ -17,14 +17,12 @@ class DatabaseHandler:
         
         # Open cursor to the default server (named postgres)
         self.defaultConnection = self.openConnection(openDefault=True)
-        self.defaultConnection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
         if not self.dbExists(self.dbInfo["database"]):
             self.createNewDb(self.dbInfo["database"])
 
         # Open cursor to the server specified in the config file
         self.connection = self.openConnection()
-        self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
     def openConnection(self, openDefault=False):
         """Opens a connection to DB.
@@ -38,7 +36,9 @@ class DatabaseHandler:
         if openDefault:
             params['database'] = 'postgres'
         logging.info("Opening connection to DB: %s", params['database'])
-        return psycopg2.connect(**params)
+        connection = psycopg2.connect(**params)
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        return connection
 
     def closeConnection(self, connection):
         logging.info('Closing connection')

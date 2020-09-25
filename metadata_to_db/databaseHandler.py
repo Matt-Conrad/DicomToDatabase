@@ -82,7 +82,7 @@ class DatabaseHandler:
 
     def countRecords(self, tableName):
         """Checks the count of records in a table."""
-        sqlQuery = 'SELECT COUNT(*) FROM ' + tableName + ';'
+        sqlQuery = 'SELECT COUNT(*) FROM \"' + tableName + '\";'
         return self.executeQuery(self.connection, sqlQuery).fetchone()[0]
 
     def dropTable(self, tableName):
@@ -98,16 +98,16 @@ class DatabaseHandler:
             columnsInfo = json.load(fileReader)
         
         # Make the SQL query
-        sqlQuery = 'CREATE TABLE ' + tableName + ' ('
+        sqlQuery = 'CREATE TABLE \"' + tableName + '\" ('
 
         nonElementsColumns = columnsInfo[nonElementSectionName]
         for columnName in nonElementsColumns:
-            sqlQuery = sqlQuery + columnName + ' ' + nonElementsColumns[columnName]['db_datatype'] + " " + nonElementsColumns[columnName]['constraints'] + ','
+            sqlQuery = sqlQuery + "\"" + columnName + '\" ' + nonElementsColumns[columnName]['db_datatype'] + " " + nonElementsColumns[columnName]['constraints'] + ','
 
         elementColumns = columnsInfo[elementSectionName]
         for columnName in elementColumns:
             if not elementColumns[columnName]['calculation_only']:
-                sqlQuery = sqlQuery + columnName + ' ' + elementColumns[columnName]['db_datatype'] + ','
+                sqlQuery = sqlQuery + "\"" + columnName + '\" ' + elementColumns[columnName]['db_datatype'] + ','
 
         sqlQuery = sqlQuery[:-1] + ');'
         self.executeQuery(self.connection, sqlQuery)
@@ -115,13 +115,13 @@ class DatabaseHandler:
 
     def createNewDb(self, dbName):
         logging.info('Attempting to create a new DB')
-        self.executeQuery(self.defaultConnection, 'CREATE DATABASE ' + dbName + ';')
+        self.executeQuery(self.defaultConnection, 'CREATE DATABASE \"' + dbName + '\";')
         self.dbExists(dbName)
 
     def dropDb(self, dbName):
         logging.info('Attempting to drop a new DB')
         self.closeConnection(self.connection)
-        self.executeQuery(self.defaultConnection, 'DROP DATABASE ' + dbName + ';')
+        self.executeQuery(self.defaultConnection, 'DROP DATABASE \"' + dbName + '\";')
         self.dbExists(dbName)
 
     def executeQuery(self, connection, query, values=None):

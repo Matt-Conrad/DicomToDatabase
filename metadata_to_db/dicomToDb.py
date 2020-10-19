@@ -24,8 +24,7 @@ class DicomToDatabase:
             elementsDict = json.load(fileReader)
         elementsOriginal = elementsDict["elements"]
 
-        folderRelPath = "./" + self.configHandler.getDatasetName()
-        pathlist = Path(folderRelPath).glob('**/*.dcm')
+        pathlist = Path(self.configHandler.getUnpackFolderPath()).glob('**/*.dcm')
         for path in pathlist:
             elements = elementsOriginal.copy()
 
@@ -65,7 +64,8 @@ class DicomToDatabase:
 
         # Create the list of values that we're going to use to build the query
         names = ['file_name', 'file_path']
-        values = [filePath.split(os.sep)[-1], filePath]
+        fileRelPath = filePath.replace(self.configHandler.getParentFolder() + os.path.sep, "")
+        values = [filePath.split(os.sep)[-1], fileRelPath]
         placeholders = ['%s', '%s']
         # Append any value to this list that isn't birth_date or study_date
         for elementName in elements.keys():

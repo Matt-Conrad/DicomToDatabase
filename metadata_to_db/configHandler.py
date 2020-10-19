@@ -5,8 +5,8 @@ import atexit
 import os
 
 class ConfigHandler:
-    def __init__(self, configFilename):
-        self.configFilename = configFilename
+    def __init__(self, configFilePath):
+        self.configFilePath = configFilePath
 
         self.parser = ConfigParser()
         self.readConfigFile()
@@ -14,20 +14,23 @@ class ConfigHandler:
 
     # Functions for external use
     def getConfigFilename(self):
-        return self.configFilename
+        return os.path.basename(self.configFilePath)
+
+    def getConfigFilePath(self):
+        return self.configFilePath
 
     # Functions for internal use
     def readConfigFile(self):
-        logging.info("Reading config file: %s", self.getConfigFilename())
-        if os.path.exists(self.configFilename):
-            self.parser.read(self.configFilename)
+        logging.info("Reading config file: %s", self.getConfigFilePath())
+        if os.path.exists(self.getConfigFilePath()):
+            self.parser.read(self.getConfigFilePath())
             logging.info("Config file read")
         else:
-            raise OSError('File {0} not found'.format(self.getConfigFilename()))
+            raise OSError('File {0} not found'.format(self.getConfigFilePath()))
 
     def writeConfigFile(self):
-        logging.info("Writing config file: %s", self.getConfigFilename())
-        with open(self.configFilename, 'w') as configfile:
+        logging.info("Writing config file: %s", self.getConfigFilePath())
+        with open(self.getConfigFilePath(), 'w') as configfile:
             self.parser.write(configfile)
 
     def getSection(self, sectionName):

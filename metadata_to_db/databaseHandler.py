@@ -49,7 +49,7 @@ class DatabaseHandler:
         return connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     def closeCursor(self, cursor):
-        logging.info('Closing cursor')
+        logging.debug('Closing cursor')
         try:
             cursor.close()
         except (psycopg2.DatabaseError) as error:
@@ -58,7 +58,9 @@ class DatabaseHandler:
     def checkServerConnection(self):
         logging.info('Checking connection to Postgres server')
         if self.executeQuery(self.connection, 'SELECT version()').fetchone() is not None:
-            logging.info('Server connection confirmed')
+            logging.info('Server is connected')
+        else:
+            logging.info("Server is not connected")
 
     def dbExists(self, dbName):
         result = None
@@ -82,8 +84,13 @@ class DatabaseHandler:
 
     def countRecords(self, tableName):
         """Checks the count of records in a table."""
-        sqlQuery = 'SELECT COUNT(*) FROM \"' + tableName + '\";'
-        return self.executeQuery(self.connection, sqlQuery).fetchone()[0]
+        result = None
+        if self.tableExists(tableName):
+            sqlQuery = 'SELECT COUNT(*) FROM \"' + tableName + '\";'
+            result = self.executeQuery(self.connection, sqlQuery).fetchone()[0]
+        else:
+            result = 0
+        return result
 
     def dropTable(self, tableName):
         logging.info('Attempting to drop table: %s', tableName)

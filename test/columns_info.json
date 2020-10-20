@@ -1,0 +1,49 @@
+{
+    "nonElementColumns": {
+        "file_name": {
+            "db_datatype": "VARCHAR(255)",
+            "constraints": "PRIMARY KEY"
+        },
+        "file_path": {
+            "db_datatype": "VARCHAR(255)",
+            "constraints": ""
+        }
+    },
+    "elements": {
+        "patient_orientation": {
+            "tag": "0x0020, 0x0020",
+            "db_datatype": "VARCHAR(255)",
+            "calculation_only": false
+        },
+        "view_position": {
+            "tag": "0x0018, 0x5101",
+            "db_datatype": "VARCHAR(255)",
+            "calculation_only": false
+        },
+        "modality": {
+            "tag": "0x0008, 0x0060",
+            "db_datatype": "CHAR(2)",
+            "calculation_only": false
+        },
+        "bits_stored": {
+            "tag": "0x0028, 0x0101",
+            "db_datatype": "SMALLINT",
+            "calculation_only": false
+        },
+        "photometric_interpretation": {
+            "tag": "0x0028, 0x0004",
+            "db_datatype": "VARCHAR(255)",
+            "calculation_only": false
+        },
+        "window_center": {
+            "tag": "0x0028, 0x1051",
+            "db_datatype": "INT",
+            "calculation_only": false
+        },
+        "window_width": {
+            "tag": "0x0028, 0x1050",
+            "db_datatype": "INT",
+            "calculation_only": false
+        }
+    }
+}

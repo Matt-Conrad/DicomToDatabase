@@ -1,5 +1,5 @@
 # Don't track these items
-config.ini
+test/config.ini
 .vscode
 __pycache__
 *.log

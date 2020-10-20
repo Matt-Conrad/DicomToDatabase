@@ -6,9 +6,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-# This line is so modules using this package as a submodule can use this.
-sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/'))
-#
+import atexit
 
 class DatabaseHandler:
     def __init__(self, configHandler):
@@ -23,6 +21,11 @@ class DatabaseHandler:
 
         # Open cursor to the server specified in the config file
         self.connection = self.openConnection()
+        atexit.register(self.closeAllConnections)
+
+    def closeAllConnections(self):
+        self.closeConnection(self.defaultConnection)
+        self.closeConnection(self.connection)
 
     def openConnection(self, openDefault=False):
         """Opens a connection to DB.

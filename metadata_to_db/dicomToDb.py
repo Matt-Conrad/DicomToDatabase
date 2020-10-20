@@ -1,16 +1,11 @@
 """Contains script that moves all DCM tag-values from a directory of DCMs into a PostgreSQL DB."""
 import os
 import logging
-import sys
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import psycopg2
 from pathlib import Path
 import pydicom as pdm
-# This line is so modules using this package as a submodule can use this.
-sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace('\\', '/'))
-#
 
 class DicomToDatabase:
     def __init__(self, configHandler, dbHandler):
@@ -75,7 +70,7 @@ class DicomToDatabase:
                 placeholders.append('%s')
 
         # Build the SQL query
-        sqlQuery = 'INSERT INTO ' + metaTableName + ' (' + ', '.join(names) + ')' + os.linesep + 'VALUES (' + ', '.join(placeholders) + ');'
+        sqlQuery = 'INSERT INTO ' + metaTableName + ' (' + ', '.join(names) + ') VALUES (' + ', '.join(placeholders) + ');'
 
         return (sqlQuery, values)
 

@@ -40,7 +40,7 @@ class ConfigHandler:
             for param in params:
                 section[param[0]] = param[1]
         else:
-            raise Exception('Section {0} not found in the {1} file'.format(sectionName, self.configFilename))
+            raise Exception('Section {0} not found in the {1} file'.format(sectionName, self.getConfigFilename()))
         return section
     
     def getSetting(self, sectionName, settingName):
